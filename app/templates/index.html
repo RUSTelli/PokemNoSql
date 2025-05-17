@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pokémon Moves Database</title>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .search-box { margin-bottom: 20px; }
+        .result { display: flex; gap: 20px; margin-top: 20px; }
+        .sprite { width: 200px; height: 200px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pokémon Moves Database</h1>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Enter Pokémon name or ID">
+            <button onclick="searchPokemon()">Search</button>
+        </div>
+        
+        <div id="result" class="result">
+            <img id="sprite" class="sprite" src="" alt="Pokémon Sprite">
+            <div id="details"></div>
+        </div>
+    </div>
+
+    <script>
+        async function searchPokemon() {
+            const input = document.getElementById('searchInput').value;
+            const response = await fetch(`/pokemon/${input}`);
+            
+            if (!response.ok) {
+                alert('Pokémon not found');
+                return;
+            }
+            
+            const data = await response.json();
+            const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${parseInt(data.dexnum)}.png`;
+            
+            document.getElementById('sprite').src = spriteUrl;
+            document.getElementById('details').innerHTML = `
+                <h2>${data.name} (#${data.dexnum})</h2>
+                <p>Type: ${data.types.join(' / ')}</p>
+                <p>Height: ${data.height}m | Weight: ${data.weight}kg</p>
+                <h3>Moves (${data.moves.length}):</h3>
+                <ul>${data.moves.map(m => `<li>${m}</li>`).join('')}</ul>
+            `;
+        }
+    </script>
+</body>
+</html>
