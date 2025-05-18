@@ -60,7 +60,7 @@
             font-size: 1rem;
         }
 
-        .search-button {
+        .search-button, .update-button, .delete-button {
             padding: 0.8rem 2rem;
             background-color: var(--secondary-color);
             color: white;
@@ -68,9 +68,10 @@
             border-radius: 25px;
             cursor: pointer;
             transition: transform 0.2s;
+            margin-right: 0.5rem;
         }
 
-        .search-button:hover {
+        .search-button:hover, .update-button:hover, .delete-button:hover {
             transform: scale(1.05);
         }
 
@@ -83,6 +84,13 @@
             gap: 2rem;
             align-items: center;
             margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .action-buttons {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
         }
 
         .pokemon-sprite {
@@ -147,9 +155,12 @@
                 flex-direction: column;
                 text-align: center;
             }
-            
             .moves-list {
                 columns: 1;
+            }
+            .action-buttons {
+                position: static;
+                margin-top: 1rem;
             }
         }
     </style>
@@ -179,11 +190,14 @@
             <div class="pokemon-details">
                 <h2 class="pokemon-name" id="pokemonName"></h2>
                 <div id="types"></div>
-                
                 <div class="stats-grid" id="stats"></div>
-
                 <h3>Moves</h3>
                 <ul class="moves-list" id="moves"></ul>
+            </div>
+
+            <div class="action-buttons">
+                <button onclick="updatePokemon()" class="update-button">Update</button>
+                <button onclick="deletePokemon()" class="delete-button">Delete</button>
             </div>
         </div>
 
@@ -191,49 +205,30 @@
     </div>
 
     <script>
+        let currentDex = null;
+
         async function searchPokemon() {
             const input = document.getElementById('searchInput').value.trim();
             if (!input) return;
 
-            // Show loading state
+            // Reset
             document.getElementById('result').style.display = 'none';
             document.getElementById('error').style.display = 'none';
 
             try {
                 const response = await fetch(`/pokemon/${input}`);
                 if (!response.ok) throw new Error('Pokémon not found');
-                
                 const data = await response.json();
+                currentDex = data.dexnum;
 
-                // Update DOM elements
-                document.getElementById('pokemonName').textContent = 
-                    `${data.name} (#${data.dexnum})`;
-                
-                document.getElementById('sprite').src = 
-                    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${parseInt(data.dexnum)}.png`;
-
-                // Display types
-                const typesContainer = document.getElementById('types');
-                typesContainer.innerHTML = data.types
-                    .map(type => `<span class="pokemon-type">${type}</span>`)
+                // Populate UI
+                document.getElementById('pokemonName').textContent = `${data.name} (#${data.dexnum})`;
+                document.getElementById('sprite').src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${parseInt(data.dexnum)}.png`;
+                document.getElementById('types').innerHTML = data.types.map(type => `<span class=\"pokemon-type\">${type}</span>`).join('');
+                document.getElementById('stats').innerHTML = Object.entries(data.stats)
+                    .map(([stat, value]) => `<div class=\"stat-item\"><div class=\"stat-label\">${stat.toUpperCase()}</div><div>${value}</div></div>`)
                     .join('');
-
-                // Display stats
-                const statsContainer = document.getElementById('stats');
-                statsContainer.innerHTML = Object.entries(data.stats)
-                    .map(([stat, value]) => `
-                        <div class="stat-item">
-                            <div class="stat-label">${stat.toUpperCase()}</div>
-                            <div>${value}</div>
-                        </div>
-                    `).join('');
-
-                // Display moves
-                const movesContainer = document.getElementById('moves');
-                movesContainer.innerHTML = data.moves
-                    .map(move => `<li>${move}</li>`)
-                    .join('');
-
+                document.getElementById('moves').innerHTML = data.moves.map(move => `<li>${move}</li>`).join('');
                 document.getElementById('result').style.display = 'flex';
             } catch (error) {
                 const errorElement = document.getElementById('error');
@@ -242,7 +237,47 @@
             }
         }
 
-        // Add enter key support
+        async function deletePokemon() {
+            if (!currentDex) return;
+            if (!confirm('Are you sure you want to delete this Pokémon?')) return;
+
+            const response = await fetch(`/pokemon/${currentDex}`, { method: 'DELETE' });
+            if (response.ok) {
+                alert('Pokémon deleted successfully');
+                document.getElementById('result').style.display = 'none';
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.error);
+            }
+        }
+
+        async function updatePokemon() {
+            if (!currentDex) return;
+            const fields = prompt('Enter JSON with fields to update (e.g. {"name":"NewName"}):');
+            if (!fields) return;
+
+            let data;
+            try {
+                data = JSON.parse(fields);
+            } catch (e) {
+                return alert('Invalid JSON');
+            }
+
+            const response = await fetch(`/pokemon/${currentDex}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                alert('Pokémon updated successfully');
+                searchPokemon();
+            } else {
+                const error = await response.json();
+                alert('Error: ' + error.error);
+            }
+        }
+
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') searchPokemon();
         });
