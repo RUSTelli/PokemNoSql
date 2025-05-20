@@ -90,5 +90,21 @@ def get_move_users(move_name: str) -> tuple:
         "users": users
     }), 200
 
+@app.route("/move/<name>", methods=["GET"])
+def get_move(name: str) -> tuple:
+    """Get Move details by name"""
+    move = Move.get_collection().find_one({"name": name})
+    if not move:
+        return jsonify({"error": "Move not found"}), 404
+
+    # Return only the fields our UI needs
+    return jsonify({
+        "name": move["name"],
+        "type": move.get("type"),
+        "power": move.get("power"),
+        "accuracy": move.get("accuracy")
+    }), 200
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
