@@ -95,7 +95,11 @@
     function renderStats(stats) {
       const cont = document.getElementById('statsContainer'); clear(cont);
       const max = 255;
-      Object.entries(stats).forEach(([k, v]) => {
+      // enforce desired order
+      const order = ['hp', 'attack', 'defense', 'sp_atk', 'sp_def', 'speed', 'total'];
+      order.forEach(k => {
+        if (stats[k] == null) return;
+        const v = stats[k];
         const row = document.createElement('div');
         row.className = 'flex items-center';
         const label = document.createElement('div');
