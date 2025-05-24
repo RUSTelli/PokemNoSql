@@ -21,3 +21,24 @@
 ```bash
 git clone https://github.com/your-username/PokemNOSql.git
 cd PokemNOSql
+```
+### Activate the environment
+```bash
+source pokeEnv/bin/activate  # Linux/MacOS
+.\PokeEnv\Scripts\activate   # Windows
+```
+### Install packages 
+```bash
+pip install -r requirements.txt
+```
+
+---
+## 🚀 To load the data into the DB:
+```bash
+python -m scripts.mongo_loader 
+```
+---
+## 🚀 To run the Flask interface:
+```bash
+python -m app.routes 
+```
