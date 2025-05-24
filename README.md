@@ -37,7 +37,7 @@ pip install -r requirements.txt
 ```bash
 python -m scripts.mongo_loader 
 ```
----
+
 ## 🚀 To run the Flask interface:
 ```bash
 python -m app.routes 
