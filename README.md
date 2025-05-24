@@ -11,7 +11,7 @@
 
 ## 🖼️ Interface Preview
 
-![Pokédex Interface Preview](./c139fce8-e638-4aca-aaef-08eac1d420d0.png)
+![Pokédex Interface Preview](./app_preview.png)
 
 ---
 
